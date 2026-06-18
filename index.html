@@ -1,10 +1,322 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>我的第一個網頁</title>
-</head>
-<body>
-    <h1>你好，世界！</h1>
-    <p>這是我的第一個 GitHub Pages 網頁。</p>
-</body>
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>個人網站施工中...</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #0b0f17;
+        color: #e2e8f0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      /* 頂部標題與 Slogan 區 */
+      .header-container {
+        text-align: center;
+        margin-bottom: 25px;
+      }
+      h1 {
+        margin: 0 0 8px 0;
+        color: #10b981;
+        font-size: 28px;
+        letter-spacing: 1px;
+      }
+      .slogan {
+        font-size: 16px;
+        color: #94a3b8;
+        font-weight: 500;
+      }
+
+      /* 下方遊戲主區塊 */
+      .game-container {
+        display: flex;
+        gap: 20px;
+        background: #131a26;
+        padding: 20px;
+        border-radius: 16px;
+        border: 1px solid #243247;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      }
+      canvas {
+        background: #070a10;
+        border-radius: 12px;
+        border: 2px solid #10b981;
+        cursor: pointer;
+      }
+
+      /* 右側控制台 */
+      .dashboard {
+        width: 220px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .stat-box {
+        background: #0a0f1d;
+        border: 1px solid #1e293b;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+      .stat-label {
+        font-size: 11px;
+        color: #4a5568;
+        font-weight: bold;
+      }
+      .stat-value {
+        font-size: 20px;
+        font-weight: bold;
+        color: #38bdf8;
+        margin-top: 2px;
+        font-family: monospace;
+      }
+      .tip {
+        font-size: 12px;
+        color: #a0aec0;
+        background: #1a202c;
+        padding: 10px;
+        border-radius: 6px;
+        border-left: 4px solid #3b82f6;
+      }
+      .btn-action {
+        background: #10b981;
+        color: #070a10;
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.2s;
+        width: 100%;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        margin-top: 10px;
+      }
+      .btn-action:hover {
+        background: #059669;
+        transform: translateY(-1px);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header-container">
+      <h1>🚧 個人網站施工中...</h1>
+      <div class="slogan">「正在用愛發電建站中，乖～～先玩這台。」</div>
+    </div>
+
+    <div class="game-container">
+      <canvas id="pachinko" width="440" height="580"></canvas>
+
+      <div class="dashboard">
+        <div>
+          <div class="stat-box">
+            <div class="stat-label">🟢 正確歸檔 (Data Locked)</div>
+            <div class="stat-value" id="score-val" style="color: #10b981">
+              0
+            </div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">🔴 溢位流失 (Data Overflow)</div>
+            <div class="stat-value" id="overflow-val" style="color: #f43f5e">
+              0
+            </div>
+          </div>
+
+          <div class="tip">
+            <b>💡 操控指南：</b><br />
+            用滑鼠點擊畫面上的<b>黃色雙向閥門</b>可以改變角度，試著把數據通通引導進綠色的
+            STORE 槽吧！
+          </div>
+        </div>
+
+        <button class="btn-action" id="spawn-btn">🚀 全速注入數據流</button>
+      </div>
+    </div>
+
+    <script>
+      window.onload = function() {
+          const canvas = document.getElementById('pachinko');
+          const ctx = canvas.getContext('2d');
+          const scoreEl = document.getElementById('score-val');
+          const overflowEl = document.getElementById('overflow-val');
+          const spawnBtn = document.getElementById('spawn-btn');
+
+          let score = 0; let overflow = 0;
+          const GRAVITY = 0.2; const BOUNCE = 0.4;
+          let balls = []; let pins = []; let valves = [];
+
+          class Ball {
+              constructor(x, y) {
+                  this.x = x; this.y = y;
+                  this.vx = (Math.random() - 0.5) * 1.5; this.vy = 0;
+                  this.radius = 4.5;
+                  this.color = Math.random() > 0.2 ? '#10b981' : '#38bdf8';
+              }
+              update() {
+                  this.vy += GRAVITY; this.x += this.vx; this.y += this.vy;
+                  if (this.x < this.radius) { this.x = this.radius; this.vx *= -BOUNCE; }
+                  if (this.x > canvas.width - this.radius) { this.x = canvas.width - this.radius; this.vx *= -BOUNCE; }
+              }
+              draw() {
+                  ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                  ctx.fillStyle = this.color; ctx.fill(); ctx.closePath();
+              }
+          }
+
+          class Pin {
+              constructor(x, y) { this.x = x; this.y = y; this.radius = 3.5; this.hit = 0; }
+              draw() {
+                  ctx.beginPath(); ctx.arc(this.x, this.y, this.radius + (this.hit > 0 ? 1.5 : 0), 0, Math.PI * 2);
+                  ctx.fillStyle = this.hit > 0 ? '#ffffff' : '#4a5568'; ctx.fill(); ctx.closePath();
+                  if (this.hit > 0) this.hit--;
+              }
+          }
+
+          class Valve {
+              constructor(x, y) {
+                  this.x = x; this.y = y; this.width = 45; this.height = 6;
+                  this.angle = (Math.random() - 0.5) * 0.5;
+              }
+              draw() {
+                  ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle);
+                  ctx.fillStyle = '#eab308'; ctx.fillRect(-this.width/2, -this.height/2, this.width, this.height);
+                  ctx.beginPath(); ctx.moveTo(-this.width/2, -6); ctx.lineTo(-this.width/2 - 5, 0); ctx.lineTo(-this.width/2, 6);
+                  ctx.moveTo(this.width/2, -6); ctx.lineTo(this.width/2 + 5, 0); ctx.lineTo(this.width/2, 6);
+                  ctx.strokeStyle = '#eab308'; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+              }
+          }
+
+          function initMap() {
+              pins.push(new Pin(0, 60)); pins.push(new Pin(40, 75)); pins.push(new Pin(80, 90)); pins.push(new Pin(120, 105)); pins.push(new Pin(160, 120));
+              pins.push(new Pin(440, 60)); pins.push(new Pin(400, 75)); pins.push(new Pin(360, 90)); pins.push(new Pin(320, 105)); pins.push(new Pin(280, 120));
+
+              valves.push(new Valve(220, 150));
+              valves.push(new Valve(140, 240));
+              valves.push(new Valve(300, 240));
+
+              let startY = 300; let rows = 6;
+              for (let i = 0; i < rows; i++) {
+                  let count = 7 + i;
+                  let spacing = 36;
+                  let startX = (canvas.width - (count - 1) * spacing) / 2;
+                  for (let j = 0; j < count; j++) {
+                      pins.push(new Pin(startX + j * spacing, startY + i * 32));
+                  }
+              }
+          }
+
+          function spawnBall() {
+              for(let i=0; i<5; i++) {
+                  setTimeout(() => {
+                      balls.push(new Ball(canvas.width / 2 + (Math.random() - 0.5) * 30, 20));
+                  }, i * 80);
+              }
+          }
+          spawnBtn.addEventListener('click', spawnBall);
+
+          canvas.addEventListener('click', function(e) {
+              const rect = canvas.getBoundingClientRect();
+              const clickX = e.clientX - rect.left; const clickY = e.clientY - rect.top;
+              valves.forEach(v => {
+                  let dist = Math.sqrt((clickX - v.x)**2 + (clickY - v.y)**2);
+                  if (dist < 30) {
+                      v.angle += 25 * Math.PI / 180;
+                      if (v.angle > Math.PI/3) v.angle = -Math.PI/3;
+                  }
+              });
+          });
+
+          function handleCollisions() {
+              for (let ball of balls) {
+                  for (let pin of pins) {
+                      let dx = ball.x - pin.x; let dy = ball.y - pin.y;
+                      let dist = Math.sqrt(dx * dx + dy * dy);
+                      let minDist = ball.radius + pin.radius;
+
+                      if (dist < minDist) {
+                          pin.hit = 4;
+                          let nx = dx / dist; let ny = dy / dist;
+                          ball.x = pin.x + nx * minDist; ball.y = pin.y + ny * minDist;
+                          let dot = ball.vx * nx + ball.vy * ny;
+                          ball.vx = (ball.vx - 2 * dot * nx) * BOUNCE + (Math.random() - 0.5) * 0.2;
+                          ball.vy = (ball.vy - 2 * dot * ny) * BOUNCE;
+                      }
+                  }
+
+                  for (let v of valves) {
+                      let lX = (ball.x - v.x) * Math.cos(-v.angle) - (ball.y - v.y) * Math.sin(-v.angle);
+                      let lY = (ball.x - v.x) * Math.sin(-v.angle) + (ball.y - v.y) * Math.cos(-v.angle);
+
+                      if (Math.abs(lX) < v.width/2 + ball.radius && Math.abs(lY) < v.height/2 + ball.radius) {
+                          let cos = Math.cos(v.angle); let sin = Math.sin(v.angle);
+                          ball.vx = cos * 2 + (Math.random() - 0.5);
+                          ball.vy = Math.abs(sin * 2) + 1.5;
+                      }
+                  }
+              }
+          }
+
+          const gateCount = 8;
+          const gateWidth = canvas.width / gateCount;
+          function drawGates() {
+              ctx.fillStyle = '#111827';
+              ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
+
+              ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 2;
+              for (let i = 1; i < gateCount; i++) {
+                  ctx.beginPath(); ctx.moveTo(i * gateWidth, canvas.height - 50); ctx.lineTo(i * gateWidth, canvas.height); ctx.stroke();
+              }
+
+              ctx.font = '11px monospace'; ctx.textAlign = 'center';
+              for (let i = 0; i < gateCount; i++) {
+                  let isCenter = (i >= 2 && i <= 5);
+                  ctx.fillStyle = isCenter ? '#10b981' : '#f43f5e';
+                  ctx.fillText(isCenter ? "STORE" : "OVER", (i + 0.5) * gateWidth, canvas.height - 20);
+              }
+          }
+
+          function gameLoop() {
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              drawGates();
+              pins.forEach(p => p.draw());
+              valves.forEach(v => v.draw());
+              handleCollisions();
+
+              for (let i = balls.length - 1; i >= 0; i--) {
+                  let ball = balls[i]; ball.update(); ball.draw();
+
+                  if (ball.y > canvas.height - 25) {
+                      let gateIndex = Math.floor(ball.x / gateWidth);
+                      if (gateIndex >= 2 && gateIndex <= 5) {
+                          score++; scoreEl.textContent = score;
+                      } else {
+                          overflow++; overflowEl.textContent = overflow;
+                      }
+                      balls.splice(i, 1);
+                  }
+              }
+              requestAnimationFrame(gameLoop);
+          }
+
+          setInterval(() => {
+              if (document.visibilityState === 'visible' && balls.length < 25) {
+                  balls.push(new Ball(canvas.width / 2 + (Math.random() - 0.5) * 20, 20));
+              }
+          }, 800);
+
+          initMap();
+          gameLoop();
+      };
+    </script>
+  </body>
 </html>
